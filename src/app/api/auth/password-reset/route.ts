@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     if (consumed.count !== 1) return false;
     await tx.user.update({
       where: { id: record.userId },
-      data: { passwordHash, passwordChangedAt: now, failedLoginCount: 0, lockedUntil: null },
+      data: { passwordHash, passwordChangedAt: now, failedLoginCount: 0, lockedUntil: null, sessionVersion: { increment: 1 } },
     });
     await tx.session.deleteMany({ where: { userId: record.userId } });
     await tx.securityAuditEvent.create({ data: { actorId: record.userId, eventType: "PASSWORD_RESET_COMPLETED" } });
