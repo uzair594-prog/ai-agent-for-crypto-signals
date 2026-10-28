@@ -1,5 +1,5 @@
-import Link from "next/link";
 "use client";
+import Link from "next/link";
 import {useEffect,useState} from "react";
 type Item={title:string;link:string;publishedAt:string|null;source:string;sentiment:"positive"|"negative"|"neutral"|"mixed";score:number};
 export default function News(){const [items,setItems]=useState<Item[]>([]),[warning,setWarning]=useState("Loading headlines…"),[loading,setLoading]=useState(true);
