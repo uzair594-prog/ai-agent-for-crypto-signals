@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createOpaqueToken, hashToken } from "@/lib/security";
+import { checkAuthRateLimit, requestFingerprint } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,12 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Please check the submitted details." }, { status: 400 });
 
   const email = parsed.data.email.toLowerCase();
+  try {
+    const limit = await checkAuthRateLimit(requestFingerprint(request, email));
+    if (!limit.success) return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+  } catch {
+    return NextResponse.json({ error: "Security rate limiter is not configured." }, { status: 503 });
+  }
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existing) {
     return NextResponse.json({ message: "If the address can be registered, a verification email will be sent." }, { status: 202 });
