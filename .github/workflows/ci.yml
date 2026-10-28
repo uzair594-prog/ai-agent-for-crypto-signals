@@ -13,7 +13,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci?schema=public
       AUTH_SECRET: ci-only-not-for-production-secret-value
-      TOKEN_ENCRYPTION_KEY: Y2ktb25seS1rZXktbXVzdC1iZS0zMi1ieXRlcy1sb25nIQ==
+      TOKEN_ENCRYPTION_KEY: Y2kta2V5LTMyLWJ5dGVzLWxvbmctbm90LXByb2QhISE=
       APP_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
