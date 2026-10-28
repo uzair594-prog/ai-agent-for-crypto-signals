@@ -14,7 +14,10 @@ export async function getCandles(symbol:string,interval="1h",limit=200):Promise<
   const safe=symbol.toUpperCase().replace(/[^A-Z0-9]/g,"");
   const allowed=["1m","5m","15m","30m","1h","4h","1d","1w"];
   if(!allowed.includes(interval))throw new Error("Unsupported interval");
-  const res=await fetch(`${BASE}/api/v3/klines?symbol=${encodeURIComponent(safe)}&interval=${interval}&limit=${Math.min(500,Math.max(50,limit))}`,{cache:"no-store",signal:AbortSignal.timeout(10000)});
+  // MEXC spot klines uses 60m for hourly candles (not 1h). Keep app-facing intervals human-readable.
+  const exchangeInterval:Record<string,string>={"1h":"60m","1w":"1W"};
+  const apiInterval=exchangeInterval[interval]||interval;
+  const res=await fetch(`${BASE}/api/v3/klines?symbol=${encodeURIComponent(safe)}&interval=${encodeURIComponent(apiInterval)}&limit=${Math.min(500,Math.max(50,limit))}`,{cache:"no-store",signal:AbortSignal.timeout(10000)});
   if(!res.ok)throw new Error(`Candle API HTTP ${res.status}`);
   const raw=await res.json();
   if(!Array.isArray(raw))throw new Error("Unexpected candle response");
