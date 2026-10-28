@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createOpaqueToken, hashToken } from "@/lib/security";
+import { checkAuthRateLimit, requestFingerprint } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 const schema = z.discriminatedUnion("action", [
@@ -19,6 +20,13 @@ export async function POST(request: Request) {
   }
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  try {
+    const identity = parsed.data.action === "request" ? parsed.data.email.toLowerCase() : hashToken(parsed.data.token);
+    const limit = await checkAuthRateLimit(requestFingerprint(request, identity));
+    if (!limit.success) return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+  } catch {
+    return NextResponse.json({ error: "Security rate limiter is not configured." }, { status: 503 });
+  }
 
   if (parsed.data.action === "request") {
     const generic = { message: "If the account exists, a password reset email will be sent." };
