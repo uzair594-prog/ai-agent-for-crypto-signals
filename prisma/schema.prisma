@@ -34,6 +34,7 @@ model User {
   mfaSecretEncrypted  String?
   mfaConfirmedAt      DateTime?
   failedLoginCount    Int          @default(0)
+  sessionVersion      Int          @default(0)
   lockedUntil         DateTime?
   lastLoginAt         DateTime?
   passwordChangedAt   DateTime?
