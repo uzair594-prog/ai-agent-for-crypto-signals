@@ -21,12 +21,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt", maxAge: 60 * 60 * 8, updateAge: 60 * 15 },
   pages: { signIn: "/login" },
   providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-      allowDangerousEmailAccountLinking: false,
-      authorization: { params: { prompt: "select_account" } },
-    }),
+    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+      ? [Google({
+          clientId: process.env.AUTH_GOOGLE_ID,
+          clientSecret: process.env.AUTH_GOOGLE_SECRET,
+          allowDangerousEmailAccountLinking: false,
+          authorization: { params: { prompt: "select_account" } },
+        })]
+      : []),
     Credentials({
       name: "Email and password",
       credentials: {
