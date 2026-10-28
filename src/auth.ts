@@ -7,6 +7,7 @@ import { authenticator } from "otplib";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { decryptSecret } from "@/lib/security";
+import { checkAuthRateLimit } from "@/lib/rate-limit";
 
 const credentialsSchema = z.object({
   email: z.string().trim().email().max(254),
@@ -37,6 +38,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
         const email = parsed.data.email.toLowerCase();
+        try {
+          const limit = await checkAuthRateLimit("login:" + email);
+          if (!limit.success) return null;
+        } catch {
+          if (process.env.NODE_ENV === "production") return null;
+        }
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user || user.status !== "ACTIVE" || !user.emailVerified || !user.passwordHash) return null;
         if (user.lockedUntil && user.lockedUntil > new Date()) return null;
