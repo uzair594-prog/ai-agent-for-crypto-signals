@@ -60,7 +60,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (user.mfaEnabled) {
           if (!parsed.data.mfaCode || !user.mfaSecretEncrypted) return null;
           const secret = decryptSecret(user.mfaSecretEncrypted);
-          if (!authenticator.check(parsed.data.mfaCode, secret)) return null;
+          const validTotp = authenticator.check(parsed.data.mfaCode, secret);
+          if (!validTotp) {
+            const backupCodes = await prisma.mfaBackupCode.findMany({
+              where: { userId: user.id, usedAt: null },
+              select: { id: true, codeHash: true },
+            });
+            let matchedId: string | undefined;
+            for (const backup of backupCodes) {
+              if (await argon2.verify(backup.codeHash, parsed.data.mfaCode).catch(() => false)) {
+                matchedId = backup.id;
+                break;
+              }
+            }
+            if (!matchedId) return null;
+            const consumed = await prisma.mfaBackupCode.updateMany({
+              where: { id: matchedId, userId: user.id, usedAt: null },
+              data: { usedAt: new Date() },
+            });
+            if (consumed.count !== 1) return null;
+          }
         }
 
         await prisma.user.update({
@@ -81,6 +100,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (verified !== true || !user.email) return false;
         const existing = await prisma.user.findUnique({ where: { email: user.email.toLowerCase() } });
         if (existing && existing.status !== "ACTIVE") return false;
+        if (existing?.passwordHash) return false;
       }
       return true;
     },
