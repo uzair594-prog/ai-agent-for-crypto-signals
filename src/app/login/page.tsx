@@ -36,8 +36,10 @@ export default function LoginPage() {
         <p style={{ color: "#8da8ff", fontSize: 12, letterSpacing: 2, textTransform: "uppercase" }}>Market intelligence</p>
         <h1 style={{ fontSize: 30, margin: "8px 0" }}>Sign in</h1>
         <p style={{ color: "#aab4ca", fontSize: 14 }}>Access your research workspace securely.</p>
-        <button onClick={() => signIn("google", { callbackUrl: "/dashboard" })} style={{ width: "100%", padding: 12, margin: "20px 0 14px", borderRadius: 10, border: "1px solid #3a4560", background: "#18223a", color: "white", cursor: "pointer" }}>Continue with Google</button>
-        <div style={{ borderTop: "1px solid #293149", margin: "12px 0 20px" }} />
+        {process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED === "true" && <>
+          <button onClick={() => signIn("google", { callbackUrl: "/dashboard" })} style={{ width: "100%", padding: 12, margin: "20px 0 14px", borderRadius: 10, border: "1px solid #3a4560", background: "#18223a", color: "white", cursor: "pointer" }}>Continue with Google</button>
+          <div style={{ borderTop: "1px solid #293149", margin: "12px 0 20px" }} />
+        </>}
         <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
           <label style={{ display: "grid", gap: 6, fontSize: 13 }}>Email
             <input required type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
