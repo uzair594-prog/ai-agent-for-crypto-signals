@@ -107,13 +107,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user?.id) {
         token.sub = user.id;
-        const record = await prisma.user.findUnique({ where: { id: user.id }, select: { role: true, status: true } });
+        const record = await prisma.user.findUnique({ where: { id: user.id }, select: { role: true, status: true, sessionVersion: true } });
         if (!record || record.status !== "ACTIVE") return {};
         token.role = record.role;
-        token.authVersion = 1;
+        token.authVersion = record.sessionVersion;
       } else if (token.sub) {
-        const record = await prisma.user.findUnique({ where: { id: token.sub }, select: { role: true, status: true } });
-        if (!record || record.status !== "ACTIVE") return {};
+        const record = await prisma.user.findUnique({ where: { id: token.sub }, select: { role: true, status: true, sessionVersion: true } });
+        if (!record || record.status !== "ACTIVE" || record.sessionVersion !== token.authVersion) return {};
         token.role = record.role;
       }
       return token;
