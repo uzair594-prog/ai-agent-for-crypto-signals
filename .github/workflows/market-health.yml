@@ -1,0 +1,15 @@
+name: Market feed health check
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public market API
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 15 "https://api.mexc.com/api/v3/ticker/price?symbol=BTCUSDT" | python -c 'import json,sys; d=json.load(sys.stdin); assert float(d["price"]) > 0; print("BTCUSDT public spot endpoint healthy")'
