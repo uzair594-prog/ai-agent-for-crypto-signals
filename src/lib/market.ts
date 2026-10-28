@@ -18,5 +18,9 @@ export async function getCandles(symbol:string,interval="1h",limit=200):Promise<
   if(!res.ok)throw new Error(`Candle API HTTP ${res.status}`);
   const raw=await res.json();
   if(!Array.isArray(raw))throw new Error("Unexpected candle response");
-  return raw.map((r:any)=>({time:Number(r[0]),open:Number(r[1]),high:Number(r[2]),low:Number(r[3]),close:Number(r[4]),volume:Number(r[5])})).filter((c:Candle)=>Number.isFinite(c.close)&&c.close>0);
+  return raw.map((row: unknown) => {
+    if (!Array.isArray(row)) return null;
+    const values = row as unknown[];
+    return { time: Number(values[0]), open: Number(values[1]), high: Number(values[2]), low: Number(values[3]), close: Number(values[4]), volume: Number(values[5]) } satisfies Candle;
+  }).filter((c): c is Candle => c !== null && Number.isFinite(c.close) && c.close > 0);
 }
