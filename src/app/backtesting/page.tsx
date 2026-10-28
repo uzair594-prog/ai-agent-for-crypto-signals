@@ -1,5 +1,5 @@
-import Link from "next/link";
 "use client";
+import Link from "next/link";
 import {useState} from "react";
 type Result={symbol:string;interval:string;method:string;initialCapital:number;finalEquity:number;returnPct:number;closedTrades:number;winningClosedTrades:number;winRatePct:number|null;maxDrawdownPct:number;assumedFeeBps:number;assumedSlippageBps:number;candles:number;from:string|null;to:string|null;openPositionAtEnd:boolean;disclaimer:string;ordersEnabled:boolean};
 const money=(n:number)=>n.toLocaleString("en-US",{style:"currency",currency:"USD",maximumFractionDigits:2});
